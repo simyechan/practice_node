@@ -151,9 +151,10 @@ const app = http.createServer(function(request,response){
         });
         request.on('end', function() {
             var post = qs.parse(body);
-            var id = post.id;
-            var filteredId = path.parse(id).base;
-            fs.unlink(`data/${filteredId}`, function(error) {
+            db.query(`DELETE FROM topic WHERE id = ?`, [post.id], function(error, result) {
+                if(error) {
+                    throw error;
+                }
                 response.writeHead(302, {location: `/`});
                 response.end();
             });
