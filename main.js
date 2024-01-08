@@ -1,21 +1,30 @@
-var http = require('http');
-var fs = require('fs');
-var url = require('url');
-var qs = require('querystring');
-var template = require('./lib/template.js');
-var path = require('path');
-var senitizeHtml = require('sanitize-html');
+const http = require('http');
+const fs = require('fs');
+const url = require('url');
+const qs = require('querystring');
+const template = require('./lib/template.js');
+const path = require('path');
+const senitizeHtml = require('sanitize-html');
+const mysql = require('mysql2');
+require("dotenv").config({path: '.env'});
+const db = mysql.createConnection({
+    host:process.env.HOST,
+    user:process.env.USERNAME,
+    password:process.env.PASSWORD,
+    database:process.env.DATABASE
+});
+db.connect();
 
-var app = http.createServer(function(request,response){
-    var _url = request.url;
-    var queryData = url.parse(_url, true).query;
-    var pathname = url.parse(_url, true).pathname;
+const app = http.createServer(function(request,response){
+    const _url = request.url;
+    const queryData = url.parse(_url, true).query;
+    const pathname = url.parse(_url, true).pathname;
     if(pathname === '/') {
         if(queryData.id === undefined) {
-            fs.readdir('./data', function(error, filelist) {
+            db.query(`SELECT * FROM topic`, function(error, topics) {
                 var title = 'Welcome';
                 var description = 'Hello, Node.js';
-                var list = template.list(filelist);
+                var list = template.list(topics);
                 var html = template.html(title, list,
                     `<h2>${title}</h2>${description}`,
                     `<a href="/create">create<a>`
